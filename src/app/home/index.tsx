@@ -23,6 +23,12 @@ export function Home(){
                 color={theme.colors.gray_300}></Feather>
                 </Input>
             </View>
+            <Contact contact={{
+            name: "Pedroso",
+            image: require("@/assets/avatar.jpeg")
+        }} />
         </View>
+
+
     )
 }
