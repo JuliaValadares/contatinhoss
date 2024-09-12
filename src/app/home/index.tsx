@@ -3,13 +3,13 @@ import { Feather } from '@expo/vector-icons'
 import { theme } from "@/theme/index"
 import { styles } from './styles'
 import { Input } from '@/app/components/input'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { Contact, ContactProps } from '../components/contact'
 import * as Contacts from 'expo-contacts'
 
 type SectionListDataProps = {
     title: string
-    data: ContactProps
+    data: ContactProps[]
 }
 
 export function Home(){
@@ -21,7 +21,23 @@ async function fetchContacts() {
         const { status } = await Contacts.requestPermissionsAsync()
         if (status === Contacts.PermissionStatus.GRANTED){
             const { data } = await Contacts.getContactsAsync()
-            console.log(data)
+            const list = data.map((contact) =>({
+                id: contact.id ?? useId(),
+                name: contact.name,
+                image: contact.image,
+            })).reduce<SectionListDataProps[]>((acc: any, item) => {
+                const firstLetter = item.name[0].toUpperCase()
+                const existingEntry = acc.find((entry: SectionListDataProps) =>
+                (entry.title === firstLetter))
+
+                if(existingEntry){
+                    existingEntry.data.push(item)
+                }else{
+                    acc.push({title: firstLetter, data: [item]})
+                }
+                return acc
+            },[])
+            setContacts(list)
         }
     } catch(error){
         console.log(error)
@@ -48,15 +64,13 @@ async function fetchContacts() {
             sections={[{title: "R", data:[{id: "1", name}] }]}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => (
-            <Contact contact={{
-                name: "Julia",
-                image: require("@/assets/avatar.jpeg")
-            }} />
+            <Contact contact={item}  />
         )}
         renderSectionHeader = {({ section}) => 
         (<Text style={styles.section}>{section.title}</Text>)}
         contentContainerStyle = {styles.contentList}
         />
         </View>
+
     )}
     
